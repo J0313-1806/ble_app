@@ -1,10 +1,10 @@
 # ble_app
 
-A new Flutter project.
+A BLE Flutter project.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This Project
 
 A few resources to get you started if this is your first Flutter project:
 
