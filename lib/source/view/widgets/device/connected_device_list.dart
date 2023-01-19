@@ -1,5 +1,5 @@
 import 'package:ble_app/source/controller/home_controller.dart';
-import 'package:ble_app/source/view/home/nearby_home.dart';
+import 'package:ble_app/source/view/screens/nearby_home.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

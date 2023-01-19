@@ -1,5 +1,5 @@
 import 'package:ble_app/source/bindings/app_bindings.dart';
-import 'package:ble_app/source/view/nav_page.dart';
+import 'package:ble_app/source/view/screens/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       ),
       initialBinding: AppBindings(),
       debugShowCheckedModeBanner: false,
-      home: const NavHome(),
+      home: const MyHomePage(),
     );
   }
 }

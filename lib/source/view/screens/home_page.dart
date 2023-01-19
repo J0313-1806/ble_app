@@ -50,7 +50,23 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-// Custom Device Tile
+// Stream to build nearby Devices list
+  Widget buildStreamDevices() {
+    return StreamBuilder<BluetoothState>(
+        stream: _homeController.bluePlus.state,
+        initialData: BluetoothState.unknown,
+        builder: (c, snapshot) {
+          final state = snapshot.data;
+          if (state == BluetoothState.on) {
+            _homeController.bluetoothToggle(true);
+            return buildDeviceList();
+          }
+          _homeController.bluetoothToggle(false);
+          return buildOffScreen(state: state);
+        });
+  }
+
+// Device List
   Widget buildDeviceList() {
     return StreamBuilder<List<ScanResult>>(
       stream: _homeController.bluePlus.scanResults,
@@ -64,7 +80,7 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-  // custom device container
+  // Custom Device Tile
   Widget buildDeviceTile(ScanResult device) {
     return Container(
       width: Get.width - 5,
@@ -99,7 +115,8 @@ class MyHomePage extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 OutlinedButton(
-                    onPressed: () => _homeController.onConnect(device.device),
+                    onPressed: () =>
+                        _homeController.toDeviceDetail(device.device),
                     style: OutlinedButton.styleFrom(
                         shape: const StadiumBorder(),
                         fixedSize: const Size.fromWidth(110)),
@@ -118,17 +135,20 @@ class MyHomePage extends StatelessWidget {
   }
 
   Widget buildActionButton() {
-    // return Obx(() => _homeController.bluetoothToggle.value
-    //     ? _homeController.showFloatingButton.value
-    //         ?
-    return FloatingActionButton(
-      onPressed: _homeController.scanDevices,
-      child: const Icon(
-        Icons.search,
-      ),
+    return Obx(
+      () => AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          transitionBuilder: (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
+          child: _homeController.showFloatingButton.value
+              ? FloatingActionButton(
+                  onPressed: _homeController.scanDevices,
+                  child: const Icon(
+                    Icons.search,
+                  ),
+                )
+              : const SizedBox()),
     );
-    //     : const Center()
-    // : const Center());
   }
 
   Widget buildOffScreen({BluetoothState? state}) {
@@ -154,20 +174,5 @@ class MyHomePage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget buildStreamDevices() {
-    return StreamBuilder<BluetoothState>(
-        stream: _homeController.bluePlus.state,
-        initialData: BluetoothState.unknown,
-        builder: (c, snapshot) {
-          final state = snapshot.data;
-          if (state == BluetoothState.on) {
-            _homeController.bluetoothToggle(true);
-            return buildDeviceList();
-          }
-          _homeController.bluetoothToggle(false);
-          return buildOffScreen(state: state);
-        });
   }
 }

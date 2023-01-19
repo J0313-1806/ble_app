@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:ble_app/source/constants/colors.dart';
-import 'package:ble_app/source/constants/strings.dart';
 import 'package:ble_app/source/controller/home_controller.dart';
 import 'package:ble_app/source/controller/nearby_api_controller.dart';
 import 'package:flutter/material.dart';
@@ -18,28 +17,26 @@ class NearbyHome extends StatefulWidget {
   static final BluetoothDevice deviceInfo =
       Get.arguments ?? _homeController.connectedDeviceInfo;
 
-  static final simpleBlue = _homeController.simpleBlue;
-
   @override
   State<NearbyHome> createState() => _NearbyHomeState();
 }
 
 class _NearbyHomeState extends State<NearbyHome> {
-  @override
-  void initState() {
-    NearbyHome.simpleBlue.listenConnectedDevice().listen((connectedDevice) {
-      connectedDevice?.stream?.listen((received) {
-        setState(() {
-          receivedData +=
-              "${DateTime.now().toString()}: ${utf8.decode(received)}";
-        });
-      });
-    }).onError((err) {
-      log("simpleblue error: $err");
-    });
-    log(receivedData);
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   NearbyHome.simpleBlue.listenConnectedDevice().listen((connectedDevice) {
+  //     connectedDevice?.stream?.listen((received) {
+  //       setState(() {
+  //         receivedData +=
+  //             "${DateTime.now().toString()}: ${utf8.decode(received)}";
+  //       });
+  //     });
+  //   }).onError((err) {
+  //     log("simpleblue error: $err");
+  //   });
+  //   log(receivedData);
+  //   super.initState();
+  // }
 
   var receivedData = 'null';
   var uuid;

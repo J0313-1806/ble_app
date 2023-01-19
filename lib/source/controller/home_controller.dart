@@ -1,15 +1,13 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:ble_app/source/controller/nearby_api_controller.dart';
-import 'package:ble_app/source/view/device/connected_device_list.dart';
-import 'package:ble_app/source/view/home/home_page.dart';
-import 'package:ble_app/source/view/home/nearby_home.dart';
+import 'package:ble_app/source/view/widgets/device/connected_device_list.dart';
+import 'package:ble_app/source/view/screens/device_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:simpleblue/simpleblue.dart';
 // import 'package:simpleblue/simpleblue.dart';
 
 class HomeController extends GetxController {
@@ -17,26 +15,13 @@ class HomeController extends GetxController {
   void onReady() async {
     super.onReady();
 
-    // simplebluePlugin.listenConnectedDevice().listen((connectedDevice) {
-    //   log("Connected device: $connectedDevice");
-
-    //   if (connectedDevice != null) {
-    //     // deviceList[connectedDevice.uuid] = connectedDevice;
-    //   }
-
-    //   connectedDevice?.stream?.listen((received) {
-    //     // receivedData += "${DateTime.now().toString()}: $received\n";
-    //   });
-    // }).onError((err) {
-    //   log("listening on connected Device error: $err");
-    // });
     await bluePlus.isOn ? scanDevices() : null;
   }
 
 // initializing bluetooth plus library
   var bluePlus = FlutterBluePlus.instance;
 // initializing simpleBlue library
-  final simpleBlue = Simpleblue();
+  // final simpleBlue = Simpleblue();
 
   ScrollController deviceListScrollController = ScrollController();
 
@@ -44,9 +29,6 @@ class HomeController extends GetxController {
   RxBool checkLocationPersmission = RxBool(false);
 
   RxBool bluetoothToggle = RxBool(false);
-
-  /// list of screen for bottom navigation
-  List<Widget> pages = [const MyHomePage(), const NearbyHome()];
 
   /// to turn on/off bluetooth
   void onToggleBluetooth(bool value) async {
@@ -59,6 +41,9 @@ class HomeController extends GetxController {
     }
     // }
   }
+
+  /// Text controller for message
+  var writeController = TextEditingController();
 
   ///takes unique device id
   RxString hostName = RxString("");
@@ -75,19 +60,31 @@ class HomeController extends GetxController {
   /// List of connected Devices
   RxList<BluetoothDevice> connectedDeviceList = RxList([]);
 
+  /// Connected Device ID
+  RxString deviceID = RxString("");
+
+  /// Checks whether device is connected to device
+  RxBool isConnected = RxBool(false);
+
   /// takes to the device information page
   void onConnect(BluetoothDevice device) async {
-    hostName(device.id.id);
+    // hostName(device.id.id);
     fetchingService(true);
-    connectedDeviceInfo == null
-        ? await device.connect().whenComplete(() async {
-            connectedDeviceInfo = device;
-            deviceServices.value = await device.discoverServices();
-            log("device type: ${device.type}");
-
-            Get.to(() => const NearbyHome(), arguments: device);
-          }).catchError((onError) => log("cannot connect to device: $onError"))
-        : log("maybe already connected");
+    if (connectedDeviceInfo == null) {
+      await device.connect().whenComplete(() async {
+        connectedDeviceInfo = device;
+        deviceServices.value = await device.discoverServices();
+        isConnected(true);
+        log("device type: ${device.type}");
+      }).catchError((onError) {
+        isConnected(false);
+        log("cannot connect to device: $onError");
+      });
+    } else {
+      Get.snackbar(
+          "Check connected Devices list", "Maybe its already connected");
+      log("maybe already connected");
+    }
 
     fetchingService(false);
     connectedDeviceList.value = await bluePlus.connectedDevices;
@@ -111,6 +108,15 @@ class HomeController extends GetxController {
     connectedDeviceList.isNotEmpty
         ? Get.to(() => const ConnectedDeviceList())
         : null;
+    connectedDeviceList.isNotEmpty
+        ? null
+        : Get.snackbar("Not Connected", "No connected devices found");
+  }
+
+  /// To see device Detail page
+  void toDeviceDetail(BluetoothDevice device) {
+    deviceID(device.id.id);
+    Get.to(() => const DeviceDetailPage(), arguments: device);
   }
 
   /// For sending messages
@@ -155,33 +161,18 @@ class HomeController extends GetxController {
         for (var device in connectedDevices) {
           deviceList.putIfAbsent(device.id.toString(), () => device);
         }
-
-        Get.put(NearbyApiController());
-        // deviceList(event);
-
-        //   simplebluePlugin
-        //       .scanDevices(serviceUUID: serviceUUID.value, timeout: 15000)
-        //       .listen((devices) {
-        //     for (var device in devices) {
-        //       log(device.uuid);
-        //       deviceList[device.uuid] = device;
-        //     }
-        //   });
       }
-      // simplebluePlugin.getDevices().then((value) {
-      //   for (var device in value) {
-      //     deviceList[device.uuid] = device;
-      //     log("${device.name} ${device.isConnected ? "is Connected" : "is not Connected"} ");
-      //   }
-      // });
     }
   }
 
+  /// Bottom navigation
   RxInt pageIndex = RxInt(0);
   void bottomNavTap(int index) {
+    index == 1 ? Get.put(NearbyApiController()) : null;
     pageIndex(index);
   }
 
+  /// To hide floating action button on scroll
   RxBool showFloatingButton = RxBool(true);
   void onScrollListener(DragDownDetails details) {
     deviceListScrollController.addListener(() {
