@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:ble_app/source/constants/colors.dart';
 import 'package:ble_app/source/constants/strings.dart';
 import 'package:ble_app/source/controller/home_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
@@ -18,46 +19,49 @@ class DeviceDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(_homeController.deviceID.value),
       ),
-      body: _homeController.fetchingService.value
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : _homeController.isConnected.value
-              ? ListView.builder(
-                  itemCount: _homeController.deviceServices.length,
-                  itemBuilder: (context, serviceIndex) {
-                    var service = _homeController.deviceServices[serviceIndex];
-                    var services = service.includedServices;
-                    log("services included: $services");
-                    return ExpansionTile(
-                      title: Text(service.uuid.toString()),
-                      children: List.generate(
-                        service.characteristics.length,
-                        (chIndex) {
-                          var characteristics =
-                              service.characteristics[chIndex];
-                          return ExpansionTile(
-                            title: Text(
-                              characteristics.uuid.toString(),
-                            ),
-                            subtitle: Text(
-                              characteristics.serviceUuid.toString(),
-                            ),
-                            children: [
-                              Row(
-                                children: <Widget>[
-                                  ..._buildReadWriteNotifyButton(
-                                      characteristics),
-                                ],
+      body: Obx(
+        () => _homeController.fetchingService.value
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : _homeController.isConnected.value
+                ? ListView.builder(
+                    itemCount: _homeController.deviceServices.length,
+                    itemBuilder: (context, serviceIndex) {
+                      var service =
+                          _homeController.deviceServices[serviceIndex];
+                      var services = service.includedServices;
+                      log("services included: $services");
+                      return ExpansionTile(
+                        title: Text(service.uuid.toString()),
+                        children: List.generate(
+                          service.characteristics.length,
+                          (chIndex) {
+                            var characteristics =
+                                service.characteristics[chIndex];
+                            return ExpansionTile(
+                              title: Text(
+                                characteristics.uuid.toString(),
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                    );
-                  },
-                )
-              : const Text("Something went wrong"),
+                              subtitle: Text(
+                                characteristics.serviceUuid.toString(),
+                              ),
+                              children: [
+                                Row(
+                                  children: <Widget>[
+                                    ..._buildReadWriteNotifyButton(
+                                        characteristics),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  )
+                : const Text("Something went wrong"),
+      ),
       floatingActionButton: buildFAB(),
     );
   }
@@ -118,8 +122,9 @@ class DeviceDetailPage extends StatelessWidget {
                           TextButton(
                             child: const Text("Send"),
                             onPressed: () {
-                              characteristic.write(utf8.encode(
-                                  _homeController.writeController.value.text));
+                              //  characteristic.write(utf8.encode(
+                              //     _homeController.writeController.value.text));
+                              log("message : ${utf8.encode(_homeController.writeController.value.text)}");
                               Navigator.pop(context);
                             },
                           ),
@@ -151,8 +156,9 @@ class DeviceDetailPage extends StatelessWidget {
               onPressed: () async {
                 characteristic.value.listen((value) {
                   // setState(() {
-                  //   widget.readValues[characteristic.uuid] = value;
+                  // widget.readValues[characteristic.uuid] = value;
                   // });
+                  log("message: ${characteristic.uuid}: ${utf8.decode((value))}");
                 });
                 await characteristic.setNotifyValue(true);
               },

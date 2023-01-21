@@ -85,7 +85,7 @@ class NearbyApiController extends GetxController {
 
   /// Advertise own device to other devices nearby
   RxString phoneId = RxString("");
-  ConnectionInfo? connectionInfo;
+  ConnectionInfo? advertisersInfo;
   void advertiseDevice() async {
     try {
       await nearby.startAdvertising(
@@ -99,7 +99,7 @@ class NearbyApiController extends GetxController {
           /// We are about to use this info once we add the device to the device list
           requestorDeviceInfo = info;
           phoneId(id);
-          connectionInfo = info;
+          advertisersInfo = info;
 
           /// show the bottom modal widget
           Get.bottomSheet(

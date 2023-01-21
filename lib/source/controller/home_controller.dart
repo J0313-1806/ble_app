@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:ble_app/source/controller/nearby_api_controller.dart';
+import 'package:ble_app/source/view/screens/nearby_home.dart';
 import 'package:ble_app/source/view/widgets/device/connected_device_list.dart';
 import 'package:ble_app/source/view/screens/device_details.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -71,24 +73,32 @@ class HomeController extends GetxController {
     // hostName(device.id.id);
     fetchingService(true);
     if (connectedDeviceInfo == null) {
-      await device.connect().whenComplete(() async {
+      await device.connect().then((value) async {
         connectedDeviceInfo = device;
         deviceServices.value = await device.discoverServices();
         isConnected(true);
+
         log("device type: ${device.type}");
-      }).catchError((onError) {
+      }).catchError((onError, stack) {
         isConnected(false);
         log("cannot connect to device: $onError");
       });
     } else {
       Get.snackbar(
           "Check connected Devices list", "Maybe its already connected");
-      log("maybe already connected");
+
+      connectedDeviceList.value = await bluePlus.connectedDevices;
+      if (connectedDeviceList.isEmpty) {
+        connectedDeviceInfo = null;
+        log("not connected device found");
+      } else {
+        log("maybe already connected");
+      }
     }
 
     fetchingService(false);
-    connectedDeviceList.value = await bluePlus.connectedDevices;
-    log("Connected Devices: ${await bluePlus.connectedDevices}");
+    // connectedDeviceList.value = await bluePlus.connectedDevices;
+    log("Connected Devices: $connectedDeviceList");
   }
 
   /// disconnects from device
@@ -154,9 +164,12 @@ class HomeController extends GetxController {
         bluePlus.startScan(timeout: const Duration(seconds: 5));
 
         var connectedDevices = await bluePlus.connectedDevices;
+// hostName.value =: Platform.isIOS ? await  DeviceInfoPlugin().iosInfo.utsname.machine : nul
+        AndroidDeviceInfo androidDeviceInfo =
+            await DeviceInfoPlugin().androidInfo;
+        var host = androidDeviceInfo.model;
 
-        hostName.value = await bluePlus.name;
-        log("host name: ${hostName.string}");
+        log("host name: $host");
 
         for (var device in connectedDevices) {
           deviceList.putIfAbsent(device.id.toString(), () => device);
@@ -168,7 +181,10 @@ class HomeController extends GetxController {
   /// Bottom navigation
   RxInt pageIndex = RxInt(0);
   void bottomNavTap(int index) {
-    index == 1 ? Get.put(NearbyApiController()) : null;
+    if (index == 1) {
+      Get.put(NearbyApiController());
+      Get.to(() => const NearbyHome());
+    }
     pageIndex(index);
   }
 

@@ -28,15 +28,13 @@ class MyHomePage extends StatelessWidget {
         style: TextStyle(color: ColorConstants.black),
       ),
       actions: [
-        _homeController.connectedDeviceList.isNotEmpty
-            ? IconButton(
-                onPressed: _homeController.toConnectedDevicesPage,
-                icon: const Icon(
-                  Icons.bluetooth_connected,
-                  color: ColorConstants.blue,
-                ),
-              )
-            : const Center(),
+        IconButton(
+          onPressed: () => _homeController.bottomNavTap(1),
+          icon: const Icon(
+            Icons.bluetooth_connected,
+            color: ColorConstants.blue,
+          ),
+        ),
         IconButton(
           onPressed: _homeController.toConnectedDevicesPage,
           icon: const Icon(

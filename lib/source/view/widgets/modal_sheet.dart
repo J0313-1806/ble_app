@@ -24,8 +24,8 @@ class ModelSheet extends StatelessWidget {
             children: <Widget>[
               ElevatedButton(
                 onPressed: () => _nearbyApiController.acceptConnection(
-                    id: _nearbyApiController.phoneId.value,
-                    info: _nearbyApiController.connectionInfo!),
+                    id: _nearbyApiController.username.value,
+                    info: _nearbyApiController.advertisersInfo!),
                 child: const Text("accept"),
               ),
               const SizedBox(
