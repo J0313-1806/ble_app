@@ -35,13 +35,13 @@ class MyHomePage extends StatelessWidget {
             color: ColorConstants.blue,
           ),
         ),
-        IconButton(
-          onPressed: _homeController.toConnectedDevicesPage,
-          icon: const Icon(
-            Icons.list,
-            color: ColorConstants.blue,
-          ),
-        ),
+        // IconButton(
+        //   onPressed: null, // _homeController.toConnectedDevicesPage,
+        //   icon: const Icon(
+        //     Icons.list,
+        //     color: ColorConstants.blue,
+        //   ),
+        // ),
       ],
       backgroundColor: ColorConstants.white,
       elevation: 0.0,
@@ -118,11 +118,9 @@ class MyHomePage extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                         shape: const StadiumBorder(),
                         fixedSize: const Size.fromWidth(110)),
-                    child: Text(
-                      _homeController.connectedDeviceInfo != null
-                          ? StringConstants.connect
-                          : StringConstants.open,
-                      style: const TextStyle(color: ColorConstants.blue),
+                    child: const Text(
+                      StringConstants.open,
+                      style: TextStyle(color: ColorConstants.blue),
                     )),
               ],
             ),

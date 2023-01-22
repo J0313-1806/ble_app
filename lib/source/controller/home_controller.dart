@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:ble_app/source/controller/nearby_api_controller.dart';
 import 'package:ble_app/source/view/screens/nearby_home.dart';
-import 'package:ble_app/source/view/widgets/device/connected_device_list.dart';
+// import 'package:ble_app/source/view/widgets/device/connected_device_list.dart';
 import 'package:ble_app/source/view/screens/device_details.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
@@ -113,15 +113,15 @@ class HomeController extends GetxController {
   }
 
   /// To See connected Devices
-  void toConnectedDevicesPage() {
-    log(connectedDeviceList.toString());
-    connectedDeviceList.isNotEmpty
-        ? Get.to(() => const ConnectedDeviceList())
-        : null;
-    connectedDeviceList.isNotEmpty
-        ? null
-        : Get.snackbar("Not Connected", "No connected devices found");
-  }
+  // void toConnectedDevicesPage() {
+  //   log(connectedDeviceList.toString());
+  //   connectedDeviceList.isNotEmpty
+  //       ? Get.to(() => const ConnectedDeviceList())
+  //       : null;
+  //   connectedDeviceList.isNotEmpty
+  //       ? null
+  //       : Get.snackbar("Not Connected", "No connected devices found");
+  // }
 
   /// To see device Detail page
   void toDeviceDetail(BluetoothDevice device) {
@@ -182,7 +182,7 @@ class HomeController extends GetxController {
   RxInt pageIndex = RxInt(0);
   void bottomNavTap(int index) {
     if (index == 1) {
-      Get.put(NearbyApiController());
+      // Get.put(NearbyApiController());
       Get.to(() => const NearbyHome());
     }
     pageIndex(index);

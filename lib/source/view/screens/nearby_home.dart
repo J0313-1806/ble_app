@@ -1,9 +1,5 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:ble_app/source/constants/colors.dart';
 import 'package:ble_app/source/controller/home_controller.dart';
-import 'package:ble_app/source/controller/nearby_api_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
@@ -11,7 +7,7 @@ import 'package:get/get.dart';
 class NearbyHome extends StatefulWidget {
   const NearbyHome({super.key});
 
-  static final NearbyApiController _nearbyApiController = Get.find();
+  // static final NearbyApiController _nearbyApiController = Get.find();
   static final HomeController _homeController = Get.find();
 
   static final BluetoothDevice deviceInfo =
@@ -158,33 +154,33 @@ class _NearbyHomeState extends State<NearbyHome> {
         //     },
         //   ),
         // ),
-        NearbyHome._nearbyApiController.devices.isEmpty
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: NearbyHome._nearbyApiController.devices.length,
-                itemBuilder: (context, index) {
-                  final device = NearbyHome._nearbyApiController.devices[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ListTile(
-                      leading: const Icon(Icons.phone),
-                      title: Text(device.name),
-                      trailing: device.isConnected
-                          ? const Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              child: device.isConnected
-                                  ? const Text("Connected")
-                                  : const Text("Not connected"),
-                            ),
-                    ),
-                  );
-                }),
+        // NearbyHome._nearbyApiController.devices.isEmpty
+        //     ? const Center(
+        //         child: CircularProgressIndicator(),
+        //       )
+        //     : ListView.builder(
+        //         shrinkWrap: true,
+        //         itemCount: NearbyHome._nearbyApiController.devices.length,
+        //         itemBuilder: (context, index) {
+        //           final device = NearbyHome._nearbyApiController.devices[index];
+        //           return Padding(
+        //             padding: const EdgeInsets.all(8.0),
+        //             child: ListTile(
+        //               leading: const Icon(Icons.phone),
+        //               title: Text(device.name),
+        //               trailing: device.isConnected
+        //                   ? const Center(
+        //                       child: CircularProgressIndicator(),
+        //                     )
+        //                   : AnimatedSwitcher(
+        //                       duration: const Duration(milliseconds: 200),
+        //                       child: device.isConnected
+        //                           ? const Text("Connected")
+        //                           : const Text("Not connected"),
+        //                     ),
+        //             ),
+        //           );
+        //         }),
       ]),
     );
   }

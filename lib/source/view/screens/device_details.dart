@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
-
+import 'dart:math' as random_math;
 import 'package:ble_app/source/constants/colors.dart';
-import 'package:ble_app/source/constants/strings.dart';
 import 'package:ble_app/source/controller/home_controller.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
@@ -20,47 +18,42 @@ class DeviceDetailPage extends StatelessWidget {
         title: Text(_homeController.deviceID.value),
       ),
       body: Obx(
-        () => _homeController.fetchingService.value
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : _homeController.isConnected.value
-                ? ListView.builder(
-                    itemCount: _homeController.deviceServices.length,
-                    itemBuilder: (context, serviceIndex) {
-                      var service =
-                          _homeController.deviceServices[serviceIndex];
-                      var services = service.includedServices;
-                      log("services included: $services");
-                      return ExpansionTile(
-                        title: Text(service.uuid.toString()),
-                        children: List.generate(
-                          service.characteristics.length,
-                          (chIndex) {
-                            var characteristics =
-                                service.characteristics[chIndex];
-                            return ExpansionTile(
-                              title: Text(
-                                characteristics.uuid.toString(),
-                              ),
-                              subtitle: Text(
-                                characteristics.serviceUuid.toString(),
-                              ),
-                              children: [
-                                Row(
-                                  children: <Widget>[
-                                    ..._buildReadWriteNotifyButton(
-                                        characteristics),
-                                  ],
-                                ),
+        () => _homeController.isConnected.value
+            ? ListView.builder(
+                itemCount: _homeController.deviceServices.length,
+                itemBuilder: (context, serviceIndex) {
+                  var service = _homeController.deviceServices[serviceIndex];
+                  var services = service.includedServices;
+                  log("services included: $services");
+                  return ExpansionTile(
+                    title: Text(service.uuid.toString()),
+                    children: List.generate(
+                      service.characteristics.length,
+                      (chIndex) {
+                        var characteristics = service.characteristics[chIndex];
+                        return ExpansionTile(
+                          title: Text(
+                            characteristics.uuid.toString(),
+                          ),
+                          subtitle: Text(
+                            characteristics.serviceUuid.toString(),
+                          ),
+                          children: [
+                            Row(
+                              children: <Widget>[
+                                ..._buildReadWriteNotifyButton(characteristics),
                               ],
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  )
-                : const Text("Something went wrong"),
+                            ),
+                            ...buildDescriptorList(characteristics.descriptors),
+                          ],
+                        );
+                      },
+                    ),
+                  );
+                },
+              )
+            : const Text(
+                "Something went wrong Or\nTry connecting using the floating button"),
       ),
       floatingActionButton: buildFAB(),
     );
@@ -83,10 +76,14 @@ class DeviceDetailPage extends StatelessWidget {
               onPressed: () async {
                 var sub = characteristic.value.listen((value) {
                   // setState(() {
-                  //   widget.readValues[characteristic.uuid] = value;
+                  //  widget.readValues[characteristic.uuid] = value;
                   // });
                 });
-                await characteristic.read();
+                var received = await characteristic.read();
+                var receivedString = utf8.decode(received);
+
+                Get.snackbar("Received Message", receivedString,
+                    backgroundColor: Colors.white);
                 sub.cancel();
               },
             ),
@@ -122,9 +119,11 @@ class DeviceDetailPage extends StatelessWidget {
                           TextButton(
                             child: const Text("Send"),
                             onPressed: () {
-                              //  characteristic.write(utf8.encode(
-                              //     _homeController.writeController.value.text));
+                              characteristic.write(utf8.encode(
+                                  _homeController.writeController.value.text));
                               log("message : ${utf8.encode(_homeController.writeController.value.text)}");
+                              Get.snackbar("Message Sent!", "",
+                                  backgroundColor: Colors.white);
                               Navigator.pop(context);
                             },
                           ),
@@ -154,9 +153,13 @@ class DeviceDetailPage extends StatelessWidget {
               child:
                   const Text('NOTIFY', style: TextStyle(color: Colors.white)),
               onPressed: () async {
-                characteristic.value.listen((value) {
+                characteristic.value.listen((value) async {
                   // setState(() {
-                  // widget.readValues[characteristic.uuid] = value;
+                  // [characteristic.uuid] = value
+                  await characteristic.setNotifyValue(true);
+                  Get.snackbar("Notification Set for",
+                      "characteristic.uuid\n${characteristic.uuid}",
+                      backgroundColor: Colors.white);
                   // });
                   log("message: ${characteristic.uuid}: ${utf8.decode((value))}");
                 });
@@ -193,6 +196,87 @@ class DeviceDetailPage extends StatelessWidget {
                     Icons.link_off,
                     color: ColorConstants.white,
                   ),
+      ),
+    );
+  }
+
+  List<Widget> buildDescriptorList(List<BluetoothDescriptor> descriptors) {
+    List<int> getRandomBytes() {
+      final math = random_math.Random();
+      return [
+        math.nextInt(255),
+        math.nextInt(255),
+        math.nextInt(255),
+        math.nextInt(255)
+      ];
+    }
+
+    return List.generate(descriptors.length, (index) {
+      BluetoothDescriptor descriptor = descriptors[index];
+      return DescriptorTile(
+        descriptor: descriptor,
+        onReadPressed: () async {
+          var received = await descriptor.read();
+          var receivedString = utf8.decode(received);
+          Get.snackbar("read ${descriptor.uuid}", "received: $receivedString",
+              backgroundColor: Colors.white);
+        },
+        onWritePressed: () => descriptor.write(getRandomBytes()),
+      );
+    });
+  }
+}
+
+class DescriptorTile extends StatelessWidget {
+  final BluetoothDescriptor descriptor;
+  final VoidCallback? onReadPressed;
+  final VoidCallback? onWritePressed;
+
+  const DescriptorTile(
+      {Key? key,
+      required this.descriptor,
+      this.onReadPressed,
+      this.onWritePressed})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Text('Descriptor'),
+          Text('0x${descriptor.uuid.toString().toUpperCase().substring(4, 8)}',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText1
+                  ?.copyWith(color: Theme.of(context).textTheme.caption?.color))
+        ],
+      ),
+      subtitle: StreamBuilder<List<int>>(
+        stream: descriptor.value,
+        initialData: descriptor.lastValue,
+        builder: (c, snapshot) => Text(snapshot.data.toString()),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.file_download,
+              color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+            ),
+            onPressed: onReadPressed,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.file_upload,
+              color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+            ),
+            onPressed: onWritePressed,
+          )
+        ],
       ),
     );
   }
